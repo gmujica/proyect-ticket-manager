@@ -1,13 +1,13 @@
 import React from 'react';
 import Trellocard from './TrelloCard';
-//import { Card } from '@material-ui/core';
 
-const List = ({ title, cards }) => {
+
+const TrelloList = ({ title, cards }) => {
     return(
         <div style={styles.container}>
             <h4>{title}</h4>
-            {cards.map(Card => (
-            <Trellocard tetx={Card.text} /> 
+            {cards.map(card => (
+            <Trellocard key={card.id} text={card.text} /> 
             ))}
         </div>
     );
@@ -15,11 +15,12 @@ const List = ({ title, cards }) => {
 
 const styles = {
     container: {
-        backgroundColor: "#ccc",
+        backgroundColor: "#dfe3e6",
         borderRadius: 3,
         width: 300,
-        padding: 8
+        padding: 8,
+        marginRight: 8
     }
 };
 
-export default List;
+export default TrelloList;

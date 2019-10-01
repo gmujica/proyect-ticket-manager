@@ -12,6 +12,28 @@ const initialState = [
                 text: "lorem de prueba para la lista 2"
             }
         ]
+    },
+    {
+        title: "In Process",
+        id: 1,
+        cards: [
+            {
+                id: 0,
+                text: "lorem de prueba para la lista"
+            },
+            {
+                id: 1,
+                text: "lorem de prueba para la lista 2"
+            },
+            {
+                id: 2,
+                text: "lorem de prueba para la lista 3"
+            },
+            {
+                id: 3,
+                text: "lorem de prueba para la lista 4"
+            }
+        ]
     }
 ];
 
