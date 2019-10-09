@@ -98,18 +98,18 @@ class TrelloActionButton extends React.Component {
                 }}
             >
                 <Textarea 
-                placeholder={placeholder} 
-                autoFocus 
-                onBlur={this.closeForm} 
-                value={this.state.text}
-                onChange={this.handleInputChange}
-                style={{
-                    resize: 'none', 
-                    width: '100%',
-                    overflow: 'hidden',
-                    outline: 'none',
-                    border: 'none'
-                }}
+                    placeholder={placeholder} 
+                    autoFocus 
+                    onBlur={this.closeForm} 
+                    value={this.state.text}
+                    onChange={this.handleInputChange}
+                    style={{
+                        resize: 'none', 
+                        width: '100%',
+                        overflow: 'hidden',
+                        outline: 'none',
+                        border: 'none'
+                    }}
                 />
             </Card>
             <div style={styles.formButtonGroup}>
