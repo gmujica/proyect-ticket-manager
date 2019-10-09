@@ -23,7 +23,7 @@ const TrelloList = ({ title, cards, listID, index }) => {
                 ref={provided.innerRef}
                 {...provided.dragHandleProps}
                 >
-                <Droppable droppableId={String(listID)}>
+                <Droppable droppableId={String(listID)} type='card'>
                 { provided => (
                     <div {...provided.droppableProps} ref={provided.innerRef}>
                         <h4>{title}</h4>
