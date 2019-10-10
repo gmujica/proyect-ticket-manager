@@ -40,7 +40,7 @@ class App extends Component {
       <DragDropContext onDragEnd={this.onDragEnd}>
         <div>
           <h2>Proyect Ticket Manager</h2>
-          <Droppable droppableId='all-list' direction='horizontal' tye='list'>
+          <Droppable droppableId='all-list' direction='horizontal' type='list'>
             {provided => (
               <ListsContainer 
                 {...provided.droppableProps}
