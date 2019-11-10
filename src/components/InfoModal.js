@@ -9,6 +9,10 @@ import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 import Typography from '@material-ui/core/Typography';
 import InfoIcon from '@material-ui/icons/Info';
+import GitHubIcon from '@material-ui/icons/GitHub';
+import LinkedInIcon from '@material-ui/icons/LinkedIn';
+
+import SimpleList from './SimpleList';
 
 
 const styles = theme => ({
@@ -51,8 +55,9 @@ const DialogActions = withStyles(theme => ({
   },
 }))(MuiDialogActions);
 
-export default function InfoModal() {
-  const [open, setOpen] = React.useState(false);
+const InfoModal = () => {
+
+  const [open, setOpen] = React.useState(true);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -74,15 +79,15 @@ export default function InfoModal() {
           <Typography gutterBottom>
           This is a task ticket management tool developed to support the management of a project using agile methodologies such as Scrum.
           </Typography>
+            <SimpleList />
           <Typography gutterBottom>
-            Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis
-            lacus vel augue laoreet rutrum faucibus dolor auctor.
-          </Typography>
-          <Typography gutterBottom>
-            Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel
-            scelerisque nisl consectetur et. Donec sed odio dui. Donec ullamcorper nulla non metus
-            auctor fringilla.
-          </Typography>
+          You can also view other projects like this in my GitHub repository or you can see my linkedin profile for more information.          </Typography>
+          <IconButton edge="start" href="https://github.com/gmujica/proyect-ticket-manager" target="_blank"  color="inherit" aria-label="menu">
+            <GitHubIcon />
+          </IconButton>
+          <IconButton edge="start" href="https://www.linkedin.com/in/gregory-mujica-2a0400b6/" target="_blank" color="inherit" aria-label="menu">
+            <LinkedInIcon />
+          </IconButton>
         </DialogContent>
         <DialogActions>
           <Button autoFocus onClick={handleClose} color="primary">
@@ -93,3 +98,5 @@ export default function InfoModal() {
     </div>
   );
 }
+
+export default InfoModal;
