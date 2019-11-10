@@ -7,7 +7,8 @@ import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
 import GitHubIcon from '@material-ui/icons/GitHub';
 import LinkedInIcon from '@material-ui/icons/LinkedIn';
-import InfoIcon from '@material-ui/icons/Info';
+
+import InfoModal from './InfoModal';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -36,7 +37,7 @@ const Header = () => {
             Proyect Ticket Manager
           </Typography>
           <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
-            <InfoIcon />
+            <InfoModal />
           </IconButton>
           <IconButton edge="start" href="https://github.com/gmujica/proyect-ticket-manager" target="_blank" className={classes.menuButton} color="inherit" aria-label="menu">
             <GitHubIcon />
