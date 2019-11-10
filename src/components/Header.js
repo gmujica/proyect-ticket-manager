@@ -3,9 +3,11 @@ import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
+import GitHubIcon from '@material-ui/icons/GitHub';
+import LinkedInIcon from '@material-ui/icons/LinkedIn';
+import InfoIcon from '@material-ui/icons/Info';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -33,7 +35,15 @@ export default function Header() {
           <Typography variant="h6" className={classes.title}>
             Proyect Ticket Manager
           </Typography>
-          <Button color="inherit">Login</Button>
+          <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
+            <InfoIcon />
+          </IconButton>
+          <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
+            <GitHubIcon />
+          </IconButton>
+          <IconButton edge="start" href="https://www.linkedin.com/in/gregory-mujica-2a0400b6/" target="_blank" className={classes.menuButton} color="inherit" aria-label="menu">
+            <LinkedInIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
     </div>
