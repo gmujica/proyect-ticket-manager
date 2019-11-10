@@ -22,7 +22,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function Header() {
+const Header = () => {
   const classes = useStyles();
 
   return (
@@ -38,7 +38,7 @@ export default function Header() {
           <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
             <InfoIcon />
           </IconButton>
-          <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
+          <IconButton edge="start" href="https://github.com/gmujica/proyect-ticket-manager" target="_blank" className={classes.menuButton} color="inherit" aria-label="menu">
             <GitHubIcon />
           </IconButton>
           <IconButton edge="start" href="https://www.linkedin.com/in/gregory-mujica-2a0400b6/" target="_blank" className={classes.menuButton} color="inherit" aria-label="menu">
@@ -49,3 +49,6 @@ export default function Header() {
     </div>
   );
 }
+
+
+export default Header;
