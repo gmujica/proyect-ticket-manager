@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import TrelloList from './TrelloList'
+import Header from './Header';
 import { connect } from 'react-redux';
 import TrelloActionButton from  './TrelloActionButton';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd'; 
@@ -39,7 +40,7 @@ class App extends Component {
     return (
       <DragDropContext onDragEnd={this.onDragEnd}>
         <div>
-          <h2>Proyect Ticket Manager</h2>
+          <Header />
           <Droppable droppableId='all-list' direction='horizontal' type='list'>
             {provided => (
               <ListsContainer 
