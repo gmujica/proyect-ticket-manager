@@ -68,12 +68,11 @@ export default function InfoModal() {
         </IconButton>
       <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
         <DialogTitle id="customized-dialog-title" onClose={handleClose}>
-          Modal title
+            Development technologies
         </DialogTitle>
         <DialogContent dividers>
           <Typography gutterBottom>
-            Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis
-            in, egestas eget quam. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.
+          This is a task ticket management tool developed to support the management of a project using agile methodologies such as Scrum.
           </Typography>
           <Typography gutterBottom>
             Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis
@@ -87,7 +86,7 @@ export default function InfoModal() {
         </DialogContent>
         <DialogActions>
           <Button autoFocus onClick={handleClose} color="primary">
-            Save changes
+            Agree
           </Button>
         </DialogActions>
       </Dialog>
