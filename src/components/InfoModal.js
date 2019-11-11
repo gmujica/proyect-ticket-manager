@@ -18,7 +18,6 @@ import SimpleList from './SimpleList';
 const styles = theme => ({
   root: {
     margin: 0,
-    padding: theme.spacing(2),
   },
   closeButton: {
     position: 'absolute',
@@ -26,6 +25,9 @@ const styles = theme => ({
     top: theme.spacing(1),
     color: theme.palette.grey[500],
   },
+  icon: {
+    marginRight: theme.spacing(2),
+  }
 });
 
 const DialogTitle = withStyles(styles)(props => {
@@ -81,13 +83,16 @@ const InfoModal = () => {
           </Typography>
             <SimpleList />
           <Typography gutterBottom>
-          You can also view other projects like this in my GitHub repository or you can see my linkedin profile for more information.          </Typography>
-          <IconButton edge="start" href="https://github.com/gmujica/proyect-ticket-manager" target="_blank"  color="inherit" aria-label="menu">
-            <GitHubIcon />
-          </IconButton>
-          <IconButton edge="start" href="https://www.linkedin.com/in/gregory-mujica-2a0400b6/" target="_blank" color="inherit" aria-label="menu">
-            <LinkedInIcon />
-          </IconButton>
+            You can also view other projects like this in my GitHub repository or you can see my linkedin profile for more information.
+          </Typography>
+          <DialogActions style={{marginRight: "40%"}}>
+            <IconButton edge="start" href="https://github.com/gmujica/proyect-ticket-manager" target="_blank"  color="inherit" aria-label="menu">
+              <GitHubIcon />
+            </IconButton>
+            <IconButton edge="start" href="https://www.linkedin.com/in/gregory-mujica-2a0400b6/" target="_blank" color="inherit" aria-label="menu">
+              <LinkedInIcon />
+            </IconButton>
+          </DialogActions>
         </DialogContent>
         <DialogActions>
           <Button autoFocus onClick={handleClose} color="primary">
