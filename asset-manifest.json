@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.js": "/proyect-ticket-manager/static/js/main.0c00e835.chunk.js",
+    "main.js.map": "/proyect-ticket-manager/static/js/main.0c00e835.chunk.js.map",
+    "runtime-main.js": "/proyect-ticket-manager/static/js/runtime-main.e37b2130.js",
+    "runtime-main.js.map": "/proyect-ticket-manager/static/js/runtime-main.e37b2130.js.map",
+    "static/js/2.977272d0.chunk.js": "/proyect-ticket-manager/static/js/2.977272d0.chunk.js",
+    "static/js/2.977272d0.chunk.js.map": "/proyect-ticket-manager/static/js/2.977272d0.chunk.js.map",
+    "index.html": "/proyect-ticket-manager/index.html",
+    "precache-manifest.75404d5137ddb6e0a646c197c969c091.js": "/proyect-ticket-manager/precache-manifest.75404d5137ddb6e0a646c197c969c091.js",
+    "service-worker.js": "/proyect-ticket-manager/service-worker.js"
+  }
+}
