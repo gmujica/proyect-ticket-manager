@@ -69,10 +69,8 @@ const InfoModal = () => {
   };
 
   return (
-    <div>
-         <IconButton onClick={handleClickOpen} color="inherit" aria-label="menu">
-            <InfoIcon />
-        </IconButton>
+    <div>  
+      <InfoIcon onClick={handleClickOpen} />
       <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
         <DialogTitle id="customized-dialog-title" onClose={handleClose}>
             Development technologies

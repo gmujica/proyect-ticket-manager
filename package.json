@@ -5,6 +5,7 @@
   "dependencies": {
     "@material-ui/core": "^4.6.0",
     "@material-ui/icons": "^4.5.1",
+    "gh-pages": "^2.1.1",
     "react": "^16.10.1",
     "react-beautiful-dnd": "^11.0.5",
     "react-dom": "^16.10.1",
@@ -14,7 +15,10 @@
     "redux": "^4.0.4",
     "styled-components": "^4.4.0"
   },
+  "homepage": "https://gmujica.github.io/proyect-ticket-manager/",
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

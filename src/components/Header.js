@@ -18,6 +18,9 @@ const useStyles = makeStyles(theme => ({
   menuButton: {
     marginRight: theme.spacing(2),
   },
+  infoIcon: {
+    marginRight: theme.spacing(2),
+  },
   title: {
     flexGrow: 1,
   },
@@ -30,8 +33,8 @@ const Header = () => {
     <div className={classes.root}>
       <AppBar position="static">
         <Toolbar>
-          <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
-            <MenuIcon />
+          <IconButton edge="start"  color="inherit" aria-label="menu">
+            <MenuIcon  className={classes.infoIcon} />
           </IconButton>
           <Typography variant="h6" className={classes.title}>
             Proyect Ticket Manager
