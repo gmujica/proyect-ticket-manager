@@ -56,6 +56,13 @@ const SimpleList = () => {
           </ListItemIcon>
           <ListItemText primary="Local Storage" />
         </ListItem>
+        <Divider />
+        <ListItem button>
+          <ListItemIcon>
+            <StyleIcon />
+          </ListItemIcon>
+          <ListItemText primary="React beautiful dnd" />
+        </ListItem>
       </List>
     </div>
   );
