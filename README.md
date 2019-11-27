@@ -15,12 +15,12 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 # Development technologies
 
-- ReactJS
-- Redux
-- Material-UI
-- Styled Components
+- [ReactJS](https://reactjs.org/)
+- [Redux](https://redux.js.org/)
+- [Material-UI](https://material-ui.com/)
+- [Styled Components](https://www.styled-components.com/)
+- [React beautiful dnd](https://github.com/atlassian/react-beautiful-dnd)
 - Local Storage
-- React beautiful dnd
 
 # Images
 
