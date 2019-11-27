@@ -1,5 +1,7 @@
 # Proyect Ticket Manager
 
+A simple task manager similar to Trello which is perfect for working with the Scrum methodology
+
 # React Project
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
@@ -23,18 +25,16 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 # Images
 
 ![](./src/img/1.png)
-```
-STAR WARS: The Old Republic
-```
+
+- You can create new tasks
+
 ![](./src/img/2.png)
-```
-STAR WARS: The Old Republic
-```
+
+- You can create new lists
+
 ![](./src/img/3.png)
-```
-STAR WARS: The Old Republic
-```
+
+- you can move them in a similar way to Trello
+
 ![](./src/img/4.png)
-```
-STAR WARS: The Old Republic
-```
+
