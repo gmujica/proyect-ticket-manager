@@ -1,47 +1,57 @@
 # Proyect Ticket Manager
 
-A simple task manager similar to Trello which is perfect for working with the Scrum methodology
+A lightweight ticket board for working with the Scrum methodology.
+
+## Features
+
+- Drag & drop cards between lists, and reorder the lists themselves
+- Each ticket has a **type** (Task / Bug / Story) and a **priority**
+  (Highest → Lowest), both shown as colour-coded icons on the card
+- Delete a card from the button that appears when you hover it
+- The board is **persisted to Local Storage**, so it survives a reload
 
 ## Pre Requisites
 
-then install the dependecies for both projects(backoffice and frontscript) with:
+Node.js 20 or newer. Install the dependencies with:
 
 ```shell
 npm install
 ```
 
-__NOTE__ You can install just one project's dependecies, just go to the target folder ans run
-```npm install```
-
 # React Project
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project runs on [Vite](https://vite.dev/). In the project directory you can run:
 
-In the project director you can run
+### `npm run dev`
 
-### `npm start`
-
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Runs the app in development mode with hot module replacement.<br>
+Open [http://localhost:3000](http://localhost:3000) to view it in the browser (Vite picks the
+next free port if 3000 is taken).
 
 ### `npm run build`
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Builds the app for production into the `dist` folder.<br />
+The build is minified and the filenames include hashes.
 
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
+### `npm run preview`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Serves the production build locally so you can verify it before deploying.
+
+### `npm run deploy`
+
+Builds and publishes `dist` to GitHub Pages.
 
 # Development technologies
 
-- [ReactJS](https://reactjs.org/)
-- [Redux](https://redux.js.org/)    
-- [Material-UI](https://material-ui.com/)
-- [Styled Components](https://www.styled-components.com/)
-- [React beautiful dnd](https://github.com/atlassian/react-beautiful-dnd)
-- Local Storage
+- [React](https://react.dev/) 19
+- [Redux Toolkit](https://redux-toolkit.js.org/) + [React Redux](https://react-redux.js.org/)
+- [MUI](https://mui.com/) 9 (styling via its Emotion-based `styled` and `sx`)
+- [@hello-pangea/dnd](https://github.com/hello-pangea/dnd) — maintained fork of react-beautiful-dnd
+- [Vite](https://vite.dev/)
+- Local Storage for persistence
+
+__NOTE__ The board is saved in your browser under the `ptm.board.v1` key. Clearing
+site data resets it to the seed board.
 
 # Images
 
@@ -58,4 +68,3 @@ See the section about [deployment](https://facebook.github.io/create-react-app/d
 - you can move them in a similar way to Trello
 
 ![](./src/img/4.png)
-

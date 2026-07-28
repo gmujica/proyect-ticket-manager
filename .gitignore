@@ -12,6 +12,13 @@
 
 # production
 /build
+/dist
+
+# editors
+# ignore the IDE folder except the shared run configurations
+/.idea/*
+!/.idea/runConfigurations
+/.vscode
 
 # misc
 .DS_Store

@@ -1,42 +1,45 @@
+import { nanoid } from '@reduxjs/toolkit';
 import { CONSTANTS } from '../actions';
+import { DEFAULT_PRIORITY, DEFAULT_TYPE } from '../constants/ticket';
 
-let listID = 2;
-let cardID = 6;
+// IDs come from nanoid rather than incrementing counters: counters reset to their
+// initial value on every page load, which would collide with the IDs restored
+// from localStorage.
 
 const initialState = [
     {
         title: "To Do List",
-        id: `list-${0}`,
+        id: 'list-todo',
         cards: [
             {
-                id: `card-${0}`,
-                text: "lorem de prueba para la lista"
+                id: 'card-seed-1',
+                text: "Set up the project board",
+                type: 'task',
+                priority: 'medium'
             },
             {
-                id: `card-${1}`,
-                text: "lorem de prueba para la lista 2"
+                id: 'card-seed-2',
+                text: "Login fails with an expired session token",
+                type: 'bug',
+                priority: 'highest'
             }
         ]
     },
     {
         title: "In Process",
-        id: `list-${1}`,
+        id: 'list-in-process',
         cards: [
             {
-                id: `card-${2}`,
-                text: "lorem de prueba para la lista"
+                id: 'card-seed-3',
+                text: "As a user I want to filter tickets by priority",
+                type: 'story',
+                priority: 'high'
             },
             {
-                id: `card-${3}`,
-                text: "lorem de prueba para la lista 2"
-            },
-            {
-                id: `card-${4}`,
-                text: "lorem de prueba para la lista 3"
-            },
-            {
-                id: `card-${5}`,
-                text: "lorem de prueba para la lista 4"
+                id: 'card-seed-4',
+                text: "Update the deployment documentation",
+                type: 'task',
+                priority: 'low'
             }
         ]
     }
@@ -45,84 +48,90 @@ const initialState = [
 const listsReducer = (state = initialState, action) => {
     switch (action.type) {
 
-        case CONSTANTS.ADD_LIST:
+        case CONSTANTS.ADD_LIST: {
             const newList = {
                 title: action.payload,
                 cards: [],
-                id: `list-${listID}`
+                id: `list-${nanoid()}`
             };
-            listID += 1
-            return [...state,  newList];
-
-        case CONSTANTS.ADD_CARD:
-            {
-                const newCard = {
-                text: action.payload.text,
-                id: `card-${cardID}`
-                };
-             cardID += 1;
-
-                console.log('action received', action);
-
-        const newState = state.map(list => {
-            if(list.id === action.payload.listID) {
-                return {
-                    ...list,
-                    cards: [...list.cards, newCard]
-                };
-            } else {
-                return list;
-            }
-        });
-
-            return newState;
+            return [...state, newList];
         }
-        case CONSTANTS.DRAG_HAPPENED:
 
+        case CONSTANTS.ADD_CARD: {
+            const newCard = {
+                id: `card-${nanoid()}`,
+                text: action.payload.text,
+                type: action.payload.ticketType || DEFAULT_TYPE,
+                priority: action.payload.priority || DEFAULT_PRIORITY
+            };
+
+            return state.map(list =>
+                list.id === action.payload.listID
+                    ? { ...list, cards: [...list.cards, newCard] }
+                    : list
+            );
+        }
+
+        case CONSTANTS.DELETE_CARD: {
+            const { listID, cardID } = action.payload;
+
+            return state.map(list =>
+                list.id === listID
+                    ? { ...list, cards: list.cards.filter(card => card.id !== cardID) }
+                    : list
+            );
+        }
+
+        case CONSTANTS.DRAG_HAPPENED: {
             const {
                 droppableIdStart,
                 droppableIdEnd,
                 droppableIndexEnd,
                 droppableIndexStart,
-               // draggableId,
                 type
             } = action.payload;
 
-            const newState = [...state];
-
-            // dragging list around
-            if(type === 'list') {
-                const list = newState.splice(droppableIndexStart, 1);
-                newState.splice(droppableIndexEnd, 0, ...list);
+            // dragging a whole list to a new position
+            if (type === 'list') {
+                const newState = [...state];
+                const [movedList] = newState.splice(droppableIndexStart, 1);
+                newState.splice(droppableIndexEnd, 0, movedList);
                 return newState;
             }
 
-            // in the same list
+            // reordering cards inside the same list
             if (droppableIdStart === droppableIdEnd) {
-                const list = state.find(list => droppableIdStart === list.id);
-                const card = list.cards.splice(droppableIndexStart, 1);
-                list.cards.splice(droppableIndexEnd, 0, ...card);
+                return state.map(list => {
+                    if (list.id !== droppableIdStart) {
+                        return list;
+                    }
+                    const cards = [...list.cards];
+                    const [movedCard] = cards.splice(droppableIndexStart, 1);
+                    cards.splice(droppableIndexEnd, 0, movedCard);
+                    return { ...list, cards };
+                });
             }
 
-            //other list
+            // moving a card from one list to another
+            const listStart = state.find(list => list.id === droppableIdStart);
+            const movedCard = listStart.cards[droppableIndexStart];
 
-            if (droppableIdStart !== droppableIdEnd) {
-                // find the list where drag happend
-                const listStart = state.find(list => droppableIdStart === list.id);
+            return state.map(list => {
+                if (list.id === droppableIdStart) {
+                    return {
+                        ...list,
+                        cards: list.cards.filter((_, i) => i !== droppableIndexStart)
+                    };
+                }
+                if (list.id === droppableIdEnd) {
+                    const cards = [...list.cards];
+                    cards.splice(droppableIndexEnd, 0, movedCard);
+                    return { ...list, cards };
+                }
+                return list;
+            });
+        }
 
-                // pull out the card from the list
-                const card = listStart.cards.splice(droppableIndexStart, 1);
-
-                // find the list where grag ended
-                const listEnd = state.find(list => droppableIdEnd === list.id);
-
-                // put the card in the new lst
-                listEnd.cards.splice(droppableIndexEnd, 0, ...card);
-
-            }
-
-            return newState;
-        
         default:
             return state;
     }
