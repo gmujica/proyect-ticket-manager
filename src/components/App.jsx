@@ -1,11 +1,11 @@
-import React, { Component } from 'react';
+import { Component } from 'react';
 import { connect } from 'react-redux';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import { styled } from '@mui/material/styles';
 import TrelloList from './TrelloList';
 import Header from './Header';
 import TrelloActionButton from './TrelloActionButton';
-import { sort } from '../actions';
+import { sort } from '../store/listsSlice';
 
 const ListsContainer = styled('div')({
   display: 'flex',

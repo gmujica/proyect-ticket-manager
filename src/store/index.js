@@ -1,11 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
-import rootReducer from '../reducers';
+import listsReducer from './listsSlice';
 import { loadBoard, saveBoard } from './persistence';
 
 const persistedLists = loadBoard();
 
 const store = configureStore({
-  reducer: rootReducer,
+  reducer: { lists: listsReducer },
   preloadedState: persistedLists ? { lists: persistedLists } : undefined
 });
 

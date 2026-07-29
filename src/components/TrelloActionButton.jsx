@@ -10,7 +10,7 @@ import TextareaAutosize from '@mui/material/TextareaAutosize';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import { connect } from 'react-redux';
-import { addList, addCard } from '../actions';
+import { addList, addCard } from '../store/listsSlice';
 import { DEFAULT_PRIORITY, DEFAULT_TYPE } from '../constants/ticket';
 import { priorityOptions, typeOptions } from '../constants/ticketIcons';
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { useDispatch } from 'react-redux';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -10,7 +9,7 @@ import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import { Draggable } from '@hello-pangea/dnd';
 import { styled } from '@mui/material/styles';
 import { getPriority, getType } from '../constants/ticketIcons';
-import { deleteCard } from '../actions';
+import { deleteCard } from '../store/listsSlice';
 
 const CardContainer = styled('div')({
     marginBottom: 8,

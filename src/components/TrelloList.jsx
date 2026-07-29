@@ -1,4 +1,3 @@
-import React from 'react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { styled } from '@mui/material/styles';
 import TrelloCard from './TrelloCard';
