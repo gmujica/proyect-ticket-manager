@@ -7,6 +7,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 
+import FilterBar from './FilterBar';
 import InfoModal from './InfoModal';
 
 const Header = () => {
@@ -41,6 +42,7 @@ const Header = () => {
             <LinkedInIcon />
           </IconButton>
         </Toolbar>
+        <FilterBar />
       </AppBar>
     </Box>
   );

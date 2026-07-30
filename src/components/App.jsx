@@ -6,6 +6,7 @@ import TrelloList from './TrelloList';
 import Header from './Header';
 import TrelloActionButton from './TrelloActionButton';
 import { sort } from '../store/listsSlice';
+import { toStoreIndexes } from '../store/dragIndexes';
 
 const ListsContainer = styled('div')({
   display: 'flex',
@@ -24,12 +25,26 @@ class App extends Component {
       return;
     }
 
-    this.props.dispatch(
+    const { dispatch, lists, filters } = this.props;
+
+    // Lists are never filtered, so a list drop already reports store indexes.
+    // Cards are: their indexes are positions in the filtered view and have to be
+    // mapped back before the reducer splices with them.
+    const indexes =
+      type === 'list'
+        ? { startIndex: source.index, endIndex: destination.index }
+        : toStoreIndexes(lists, filters, source, destination, draggableId);
+
+    if (!indexes) {
+      return;
+    }
+
+    dispatch(
       sort(
         source.droppableId,
         destination.droppableId,
-        source.index,
-        destination.index,
+        indexes.startIndex,
+        indexes.endIndex,
         draggableId,
         type
       )
@@ -69,7 +84,8 @@ class App extends Component {
 }
 
 const mapStateToProps = state => ({
-  lists: state.lists
+  lists: state.lists,
+  filters: state.filters
 });
 
 export default connect(mapStateToProps)(App);

@@ -2,13 +2,16 @@ import { render, screen, waitForElementToBeRemoved } from '@testing-library/reac
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import filtersReducer from '../store/filtersSlice';
 import listsReducer from '../store/listsSlice';
 import App from './App';
 
 // A fresh store per test rather than the singleton in src/store: that one reads
 // localStorage at import time, which would leak one test's board into the next.
 const mountApp = () => {
-  const store = configureStore({ reducer: { lists: listsReducer } });
+  const store = configureStore({
+    reducer: { filters: filtersReducer, lists: listsReducer }
+  });
   const user = userEvent.setup();
 
   render(
@@ -162,5 +165,82 @@ describe('App', () => {
     expect(cardTexts(store)).not.toContain('Set up the project board');
     // the sibling card in the same list is untouched
     expect(screen.getByText('Login fails with an expired session token')).toBeInTheDocument();
+  });
+});
+
+describe('the filter bar', () => {
+  // MUI selects are not real <select> elements: open the listbox, then pick the
+  // option by name, the way a visitor does.
+  const choose = async (user, filterName, optionName) => {
+    await user.click(screen.getByRole('combobox', { name: filterName }));
+    await user.click(screen.getByRole('option', { name: optionName }));
+  };
+
+  it('shows every card before a filter is picked', async () => {
+    await renderBoard();
+
+    expect(screen.getByText('Set up the project board')).toBeInTheDocument();
+    expect(screen.getByText('Login fails with an expired session token')).toBeInTheDocument();
+    expect(screen.queryByText(/Showing \d+ of \d+ cards/)).not.toBeInTheDocument();
+  });
+
+  it('hides the cards whose type does not match', async () => {
+    const { user } = await renderBoard();
+
+    await choose(user, 'Filter by type', 'Bug');
+
+    // the one Bug seed card stays, the Task and Story ones go
+    expect(screen.getByText('Login fails with an expired session token')).toBeInTheDocument();
+    expect(screen.queryByText('Set up the project board')).not.toBeInTheDocument();
+    expect(screen.queryByText('Update the deployment documentation')).not.toBeInTheDocument();
+  });
+
+  it('hides the cards whose priority does not match', async () => {
+    const { user } = await renderBoard();
+
+    await choose(user, 'Filter by priority', 'Low');
+
+    expect(screen.getByText('Update the deployment documentation')).toBeInTheDocument();
+    expect(screen.queryByText('Set up the project board')).not.toBeInTheDocument();
+  });
+
+  it('combines type and priority', async () => {
+    const { user } = await renderBoard();
+
+    await choose(user, 'Filter by type', 'Task');
+    await choose(user, 'Filter by priority', 'Low');
+
+    // only the Task/Low card satisfies both
+    expect(screen.getByText('Update the deployment documentation')).toBeInTheDocument();
+    expect(screen.queryByText('Set up the project board')).not.toBeInTheDocument();
+    expect(screen.getByText('Showing 1 of 4 cards')).toBeInTheDocument();
+  });
+
+  it('explains a list left with nothing visible', async () => {
+    const { user } = await renderBoard();
+
+    await choose(user, 'Filter by type', 'Bug');
+
+    // "In Process" holds a Story and a Task, so it ends up fully hidden
+    expect(screen.getByText('No cards match the filter')).toBeInTheDocument();
+  });
+
+  it('never removes the hidden cards from the board', async () => {
+    const { store, user } = await renderBoard();
+
+    await choose(user, 'Filter by type', 'Bug');
+
+    expect(cardTexts(store)).toHaveLength(4);
+  });
+
+  it('brings every card back on Clear filters', async () => {
+    const { user } = await renderBoard();
+
+    await choose(user, 'Filter by type', 'Bug');
+    await user.click(screen.getByRole('button', { name: /Clear filters/ }));
+
+    expect(screen.getByText('Set up the project board')).toBeInTheDocument();
+    expect(screen.getByText('Update the deployment documentation')).toBeInTheDocument();
+    expect(screen.queryByText('No cards match the filter')).not.toBeInTheDocument();
   });
 });
