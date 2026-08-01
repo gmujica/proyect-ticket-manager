@@ -1,4 +1,12 @@
-import listsReducer, { addCard, addList, deleteCard, sort } from './listsSlice';
+import listsReducer, {
+  addCard,
+  addList,
+  deleteCard,
+  deleteList,
+  editCard,
+  renameList,
+  sort
+} from './listsSlice';
 import { DEFAULT_PRIORITY, DEFAULT_TYPE } from '../constants/ticket';
 
 // A two-list board used as the starting point for most cases. Built by a
@@ -129,6 +137,187 @@ describe('listsSlice', () => {
       listsReducer(initial, deleteCard('list-a', 'c2'));
 
       expect(initial[0].cards).toHaveLength(3);
+    });
+  });
+
+  describe('EDIT_CARD', () => {
+    const cardById = (state, listId, cardId) =>
+      state.find(list => list.id === listId).cards.find(card => card.id === cardId);
+
+    it('replaces text, type and priority together', () => {
+      const state = listsReducer(
+        board(),
+        editCard('list-a', 'c1', 'rewritten', 'bug', 'highest')
+      );
+
+      expect(cardById(state, 'list-a', 'c1')).toEqual({
+        id: 'c1',
+        text: 'rewritten',
+        type: 'bug',
+        priority: 'highest'
+      });
+    });
+
+    it('trims the new text', () => {
+      const state = listsReducer(
+        board(),
+        editCard('list-a', 'c1', '  padded  ', 'task', 'medium')
+      );
+
+      expect(cardById(state, 'list-a', 'c1').text).toBe('padded');
+    });
+
+    it('keeps the current text when the new one is blank', () => {
+      const state = listsReducer(
+        board(),
+        editCard('list-a', 'c1', '   ', 'bug', 'high')
+      );
+
+      // the blank is rejected on its own; the valid fields still land
+      expect(cardById(state, 'list-a', 'c1')).toMatchObject({
+        text: 'one',
+        type: 'bug',
+        priority: 'high'
+      });
+    });
+
+    it('keeps the current type and priority when the new ones are unknown', () => {
+      const state = listsReducer(
+        board(),
+        editCard('list-a', 'c1', 'still edited', 'epic', 'urgent')
+      );
+
+      expect(cardById(state, 'list-a', 'c1')).toMatchObject({
+        text: 'still edited',
+        type: 'task',
+        priority: 'medium'
+      });
+    });
+
+    it('leaves the other cards alone', () => {
+      const state = listsReducer(
+        board(),
+        editCard('list-a', 'c1', 'rewritten', 'bug', 'highest')
+      );
+
+      expect(cardById(state, 'list-a', 'c2')).toEqual({
+        id: 'c2',
+        text: 'two',
+        type: 'bug',
+        priority: 'high'
+      });
+      expect(cardIds(state, 'list-a')).toEqual(['c1', 'c2', 'c3']);
+    });
+
+    it('ignores a card that is not in that list', () => {
+      const initial = board();
+
+      expect(
+        listsReducer(initial, editCard('list-a', 'c4', 'nope', 'bug', 'high'))
+      ).toBe(initial);
+    });
+
+    it('ignores a list id that does not exist', () => {
+      const initial = board();
+
+      expect(
+        listsReducer(initial, editCard('list-ghost', 'c1', 'nope', 'bug', 'high'))
+      ).toBe(initial);
+    });
+
+    it('does not mutate the source card', () => {
+      const initial = board();
+      listsReducer(initial, editCard('list-a', 'c1', 'rewritten', 'bug', 'highest'));
+
+      expect(initial[0].cards[0]).toEqual({
+        id: 'c1',
+        text: 'one',
+        type: 'task',
+        priority: 'medium'
+      });
+    });
+  });
+
+  describe('RENAME_LIST', () => {
+    const titleOf = (state, listId) =>
+      state.find(list => list.id === listId).title;
+
+    it('replaces the title', () => {
+      const state = listsReducer(board(), renameList('list-a', 'Backlog'));
+
+      expect(titleOf(state, 'list-a')).toBe('Backlog');
+      expect(titleOf(state, 'list-b')).toBe('B');
+    });
+
+    it('trims the new title', () => {
+      const state = listsReducer(board(), renameList('list-a', '  Backlog  '));
+
+      expect(titleOf(state, 'list-a')).toBe('Backlog');
+    });
+
+    it('keeps the cards untouched', () => {
+      const state = listsReducer(board(), renameList('list-a', 'Backlog'));
+
+      expect(cardIds(state, 'list-a')).toEqual(['c1', 'c2', 'c3']);
+    });
+
+    it('ignores a blank title', () => {
+      const initial = board();
+
+      expect(listsReducer(initial, renameList('list-a', '   '))).toBe(initial);
+    });
+
+    it('ignores a list id that does not exist', () => {
+      const initial = board();
+
+      expect(listsReducer(initial, renameList('list-ghost', 'Backlog'))).toBe(
+        initial
+      );
+    });
+
+    it('does not mutate the previous title', () => {
+      const initial = board();
+      listsReducer(initial, renameList('list-a', 'Backlog'));
+
+      expect(initial[0].title).toBe('A');
+    });
+  });
+
+  describe('DELETE_LIST', () => {
+    it('removes the list and the cards it held', () => {
+      const state = listsReducer(board(), deleteList('list-a'));
+
+      expect(listIds(state)).toEqual(['list-b']);
+      expect(cardIds(state, 'list-b')).toEqual(['c4']);
+    });
+
+    it('removes an empty list', () => {
+      const withEmpty = [...board(), { id: 'list-c', title: 'C', cards: [] }];
+      const state = listsReducer(withEmpty, deleteList('list-c'));
+
+      expect(listIds(state)).toEqual(['list-a', 'list-b']);
+    });
+
+    it('can empty the board completely', () => {
+      const state = [deleteList('list-a'), deleteList('list-b')].reduce(
+        listsReducer,
+        board()
+      );
+
+      expect(state).toEqual([]);
+    });
+
+    it('ignores a list id that does not exist', () => {
+      const initial = board();
+
+      expect(listsReducer(initial, deleteList('list-ghost'))).toBe(initial);
+    });
+
+    it('does not mutate the previous board', () => {
+      const initial = board();
+      listsReducer(initial, deleteList('list-a'));
+
+      expect(listIds(initial)).toEqual(['list-a', 'list-b']);
     });
   });
 
