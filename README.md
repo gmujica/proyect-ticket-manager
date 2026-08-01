@@ -45,62 +45,34 @@ Builds and publishes `dist` to GitHub Pages.
 
 Signing in is optional. Without a session the board lives in Local Storage exactly
 as it always has; on the first sign-in that local board is uploaded to the account,
-and from then on it is stored in [Cloudflare D1](https://developers.cloudflare.com/d1/)
-and synced across devices.
+and from then on it is stored server-side and synced across devices.
 
-The backend is a set of [Pages Functions](https://developers.cloudflare.com/pages/functions/)
-under `functions/`, served from the same origin as the app — which is why there is
-no CORS handling and the session cookie is first party.
+**The backend is a separate repository**, [ptm-api](https://github.com/gmujica/api),
+deployed as a Cloudflare Worker on its own domain. This repository holds only the
+frontend. `src/api/client.js` is the whole of the contact between them.
 
-| Endpoint             | Purpose                                     |
-|----------------------|---------------------------------------------|
-| `GET /api/auth/login`    | Redirects to GitHub with a signed state |
-| `GET /api/auth/callback` | Exchanges the code, opens the session   |
-| `POST /api/auth/logout`  | Deletes the session                     |
-| `GET /api/me`            | The current user, or `null`             |
-| `GET`/`PUT /api/board`   | Reads and writes the stored board       |
+Because the two live on different domains, every call goes out with
+`credentials: 'include'` and the session cookie is a third-party cookie. Browsers
+that block those — Safari by default — will not keep it, and sign-in fails there.
+The board itself keeps working: a failed `/api/me` falls back to Local Storage.
 
-## Running the backend locally
+## Pointing at the API
 
-`npm run dev` only serves the frontend, so `/api/*` is not available there. To
-exercise sign-in you need Wrangler, which serves `dist` and `functions/` together
-on port 8788.
+`VITE_API_URL` says where the backend is. It is committed, not secret:
 
-**1. Create a GitHub OAuth App** at
-[Settings → Developer settings → OAuth Apps](https://github.com/settings/developers)
-→ *New OAuth App*, with:
+| File               | Value                                   |
+|--------------------|-----------------------------------------|
+| `.env.development` | `http://localhost:8788`                 |
+| `.env.production`  | `https://ptm-api.gmujica.workers.dev`   |
 
-- **Homepage URL** — `http://localhost:8788`
-- **Authorization callback URL** — `http://localhost:8788/api/auth/callback`
+It has to match the API's own `FRONTEND_ORIGIN` in the other direction, exactly
+and with no trailing slash, or CORS rejects the calls.
 
-The callback is derived from the request origin in `functions/api/auth/login.js`,
-so it has to match the port exactly. Use a separate app for production.
+## Running both halves locally
 
-**2. Fill in `.dev.vars`** (copy it from `.dev.vars.example` if it is missing) with
-the client ID and a generated client secret. The file is git-ignored.
-
-**3. Apply the migrations** to the local database, which is a SQLite file under
-`.wrangler/` and is unrelated to the `database_id` in `wrangler.toml`:
-
-```shell
-npm run db:migrate:local
-```
-
-**4. Start it** with `npm run pages:dev` and open
-[http://localhost:8788](http://localhost:8788). The script builds first, because
-Wrangler serves the contents of `dist` rather than the Vite dev server; Functions
-themselves do reload on save.
-
-## Deploying
-
-Beyond the steps above, production needs the real database and the secrets:
-
-```shell
-npx wrangler d1 create ptm-board   # paste the id into wrangler.toml
-npm run db:migrate
-npx wrangler pages secret put GITHUB_CLIENT_ID
-npx wrangler pages secret put GITHUB_CLIENT_SECRET
-```
+Two terminals. Here, `npm run dev` on port 3000; in the `api` repository,
+`npm run dev` on port 8788. Its README covers the OAuth App and the local
+database. Without the backend running the app still works, unauthenticated.
 
 # Development technologies
 

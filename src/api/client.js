@@ -1,10 +1,18 @@
-// Thin wrapper over the Pages Functions under /api. Everything is same-origin,
-// so the session cookie rides along on its own and there is no token for this
-// layer to hold — which is the point of keeping it in an HttpOnly cookie.
+// Thin wrapper over the API, which is a separate Worker on its own domain (see
+// the ptm-api repository). There is still no token for this layer to hold: the
+// session lives in an HttpOnly cookie the browser attaches on its own.
+//
+// `credentials: 'include'` rather than 'same-origin' is what that separation
+// costs. It is also why the cookie has to be SameSite=None, and therefore why
+// sign-in does not work in browsers that block third-party cookies.
+
+// Empty in a build with no API configured, which leaves every path relative and
+// makes the app fall back to localStorage instead of calling a wrong host.
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
 
 const request = async (path, options = {}) => {
-    const response = await fetch(path, {
-        credentials: 'same-origin',
+    const response = await fetch(`${API_BASE}${path}`, {
+        credentials: 'include',
         ...options
     });
 
@@ -52,4 +60,6 @@ export const logout = async () => {
     await request('/api/auth/logout', { method: 'POST' });
 };
 
-export const LOGIN_URL = '/api/auth/login';
+// A full URL, not a path: this one is followed by a browser navigation rather
+// than by fetch, so it has to point at the API's own origin.
+export const LOGIN_URL = `${API_BASE}/api/auth/login`;
