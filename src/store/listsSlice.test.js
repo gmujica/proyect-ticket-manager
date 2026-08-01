@@ -5,6 +5,7 @@ import listsReducer, {
   deleteList,
   editCard,
   renameList,
+  replaceBoard,
   sort
 } from './listsSlice';
 import { DEFAULT_PRIORITY, DEFAULT_TYPE } from '../constants/ticket';
@@ -137,6 +138,75 @@ describe('listsSlice', () => {
       listsReducer(initial, deleteCard('list-a', 'c2'));
 
       expect(initial[0].cards).toHaveLength(3);
+    });
+  });
+
+  describe('REPLACE_BOARD', () => {
+    const incoming = [
+      {
+        id: 'list-x',
+        title: 'X',
+        cards: [{ id: 'cx', text: 'from the server', type: 'bug', priority: 'high' }]
+      }
+    ];
+
+    it('swaps in the given board', () => {
+      const state = listsReducer(board(), replaceBoard(incoming));
+
+      expect(listIds(state)).toEqual(['list-x']);
+      expect(cardIds(state, 'list-x')).toEqual(['cx']);
+    });
+
+    it('accepts an empty board', () => {
+      expect(listsReducer(board(), replaceBoard([]))).toEqual([]);
+    });
+
+    it('normalizes an unknown type or priority to the defaults', () => {
+      const state = listsReducer(
+        board(),
+        replaceBoard([
+          {
+            id: 'list-x',
+            title: 'X',
+            cards: [{ id: 'cx', text: 'odd', type: 'epic', priority: 'urgent' }]
+          }
+        ])
+      );
+
+      expect(state[0].cards[0]).toMatchObject({
+        type: DEFAULT_TYPE,
+        priority: DEFAULT_PRIORITY
+      });
+    });
+
+    it('drops fields that are not part of a card', () => {
+      const state = listsReducer(
+        board(),
+        replaceBoard([
+          {
+            id: 'list-x',
+            title: 'X',
+            cards: [{ id: 'cx', text: 'ok', type: 'task', priority: 'low', evil: 1 }],
+            extra: 'ignored'
+          }
+        ])
+      );
+
+      expect(state[0]).toEqual({
+        id: 'list-x',
+        title: 'X',
+        cards: [{ id: 'cx', text: 'ok', type: 'task', priority: 'low' }]
+      });
+    });
+
+    // Losing the board to a bad payload would look exactly like losing the work.
+    it('keeps the current board when the payload is not a board', () => {
+      const initial = board();
+
+      expect(listsReducer(initial, replaceBoard(null))).toBe(initial);
+      expect(listsReducer(initial, replaceBoard(undefined))).toBe(initial);
+      expect(listsReducer(initial, replaceBoard('nope'))).toBe(initial);
+      expect(listsReducer(initial, replaceBoard([{ id: 'no-title' }]))).toBe(initial);
     });
   });
 

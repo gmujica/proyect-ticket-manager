@@ -3,10 +3,10 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
-import MenuIcon from '@mui/icons-material/Menu';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 
+import AuthButton from './AuthButton';
 import FilterBar from './FilterBar';
 import InfoModal from './InfoModal';
 
@@ -15,12 +15,10 @@ const Header = () => {
     <Box sx={{ flexGrow: 1, mb: 6 }}>
       <AppBar position="static">
         <Toolbar>
-          <IconButton edge="start" color="inherit" aria-label="menu" sx={{ mr: 2 }}>
-            <MenuIcon />
-          </IconButton>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             Proyect Ticket Manager
           </Typography>
+          <AuthButton />
           <InfoModal />
           <IconButton
             href="https://github.com/gmujica/proyect-ticket-manager"

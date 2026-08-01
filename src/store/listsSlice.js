@@ -5,6 +5,7 @@ import {
     isValidPriority,
     isValidType
 } from '../constants/ticket';
+import { normalizeBoard } from './boardSchema';
 
 // IDs come from nanoid rather than incrementing counters: counters reset to their
 // initial value on every page load, which would collide with the IDs restored
@@ -80,6 +81,14 @@ const listsSlice = createSlice({
                     payload: { listID, id: `card-${nanoid()}`, text, type, priority }
                 };
             }
+        },
+
+        // Swaps the whole board, for the one case that needs it: the board the
+        // server returns after signing in. Anything that is not a well-formed
+        // board leaves the current one alone, so a bad response degrades into
+        // "kept working locally" rather than into an emptied screen.
+        replaceBoard(state, action) {
+            return normalizeBoard(action.payload) ?? state;
         },
 
         // Blank text and unknown type/priority keys are dropped rather than
@@ -219,6 +228,7 @@ export const {
     deleteList,
     editCard,
     renameList,
+    replaceBoard,
     sort
 } = listsSlice.actions;
 
