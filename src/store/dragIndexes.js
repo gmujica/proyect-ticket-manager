@@ -31,6 +31,16 @@ export const toStoreIndexes = (lists, filters, source, destination, draggableId)
         return null;
     }
 
+    // A drop back onto the card's own slot has to leave the board exactly as it
+    // was. The rules below place the card relative to the *visible* cards only,
+    // which is right when it actually moves but not when it does not: re-derived
+    // that way, a card hops over whichever hidden neighbour sat next to it, in
+    // whichever direction the rounding falls. Removing and re-inserting at the
+    // same index is the one placement guaranteed to be a no-op.
+    if (startList === endList && source.index === destination.index) {
+        return { startIndex, endIndex: startIndex };
+    }
+
     // `sort` removes the card before inserting it, so within one list the
     // destination index applies to the array that no longer holds it.
     const endCards =

@@ -1,29 +1,6 @@
-import {
-    DEFAULT_PRIORITY,
-    DEFAULT_TYPE,
-    isValidPriority,
-    isValidType
-} from '../constants/ticket';
+import { normalizeBoard } from './boardSchema';
 
 const STORAGE_KEY = 'ptm.board.v1';
-
-const isValidCard = card =>
-    card && typeof card.id === 'string' && typeof card.text === 'string';
-
-const isValidList = list =>
-    list &&
-    typeof list.id === 'string' &&
-    typeof list.title === 'string' &&
-    Array.isArray(list.cards);
-
-// Cards saved before type/priority existed, or with a value that is no longer in
-// the catalog, are brought back on the defaults instead of rendering as blank.
-const normalizeCard = card => ({
-    id: card.id,
-    text: card.text,
-    type: isValidType(card.type) ? card.type : DEFAULT_TYPE,
-    priority: isValidPriority(card.priority) ? card.priority : DEFAULT_PRIORITY
-});
 
 /**
  * Returns the persisted board, or undefined so the reducer falls back to its
@@ -37,16 +14,7 @@ export const loadBoard = () => {
             return undefined;
         }
 
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed) || !parsed.every(isValidList)) {
-            return undefined;
-        }
-
-        return parsed.map(list => ({
-            id: list.id,
-            title: list.title,
-            cards: list.cards.filter(isValidCard).map(normalizeCard)
-        }));
+        return normalizeBoard(JSON.parse(raw));
     } catch {
         // corrupt JSON, or storage blocked (private mode / disabled cookies)
         return undefined;

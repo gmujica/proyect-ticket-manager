@@ -20,6 +20,12 @@
 !/.idea/runConfigurations
 /.vscode
 
+# cloudflare
+# .wrangler holds the local D1 sqlite file and build state; .dev.vars holds the
+# GitHub client secret for local development and must never be committed.
+/.wrangler
+.dev.vars
+
 # misc
 .DS_Store
 .env.local

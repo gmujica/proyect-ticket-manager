@@ -15,7 +15,10 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "predeploy": "vite build --mode ghpages",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "pages:dev": "vite build && wrangler pages dev",
+    "db:migrate:local": "wrangler d1 migrations apply ptm-board --local",
+    "db:migrate": "wrangler d1 migrations apply ptm-board --remote"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -43,6 +46,11 @@
     "globals": "^17.8.0",
     "jsdom": "^29.1.1",
     "vite": "^8.1.5",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "wrangler": "^4.118.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "workerd@1.20260730.1": true
   }
 }

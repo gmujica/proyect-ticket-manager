@@ -154,8 +154,23 @@ describe('dropping a card while filtered', () => {
     expect(cardIds(state, 'list-a')).toEqual(['c1', 'c2', 'c3']);
   });
 
+  // Both directions of the same trap: re-deriving the position from the visible
+  // cards alone moved the card past a hidden neighbour, downwards from the first
+  // visible slot and upwards from the last one.
   it('leaves the board unchanged when a card is dropped where it already was', () => {
     const state = drop(board(), onlyTasks, at('list-a', 1), at('list-a', 1), 'c3');
+
+    expect(cardIds(state, 'list-a')).toEqual(['c1', 'c2', 'c3', 'c4']);
+  });
+
+  it('leaves the board unchanged for a no-op drop on the first visible card', () => {
+    const state = drop(board(), onlyTasks, at('list-a', 0), at('list-a', 0), 'c1');
+
+    expect(cardIds(state, 'list-a')).toEqual(['c1', 'c2', 'c3', 'c4']);
+  });
+
+  it('leaves the board unchanged for a no-op drop with no filter active', () => {
+    const state = drop(board(), noFilter, at('list-a', 2), at('list-a', 2), 'c3');
 
     expect(cardIds(state, 'list-a')).toEqual(['c1', 'c2', 'c3', 'c4']);
   });

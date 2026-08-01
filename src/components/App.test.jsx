@@ -2,15 +2,23 @@ import { render, screen, waitForElementToBeRemoved } from '@testing-library/reac
 import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import authReducer from '../store/authSlice';
 import filtersReducer from '../store/filtersSlice';
 import listsReducer from '../store/listsSlice';
 import App from './App';
 
 // A fresh store per test rather than the singleton in src/store: that one reads
 // localStorage at import time, which would leak one test's board into the next.
+// `auth` is included because the header reads it; it stays in its initial
+// `checking` state, which is what an anonymous visitor sees before /api/me
+// answers.
 const mountApp = () => {
   const store = configureStore({
-    reducer: { filters: filtersReducer, lists: listsReducer }
+    reducer: {
+      auth: authReducer,
+      filters: filtersReducer,
+      lists: listsReducer
+    }
   });
   const user = userEvent.setup();
 

@@ -1,5 +1,11 @@
 import { createSlice, nanoid } from '@reduxjs/toolkit';
-import { DEFAULT_PRIORITY, DEFAULT_TYPE } from '../constants/ticket';
+import {
+    DEFAULT_PRIORITY,
+    DEFAULT_TYPE,
+    isValidPriority,
+    isValidType
+} from '../constants/ticket';
+import { normalizeBoard } from './boardSchema';
 
 // IDs come from nanoid rather than incrementing counters: counters reset to their
 // initial value on every page load, which would collide with the IDs restored
@@ -77,6 +83,77 @@ const listsSlice = createSlice({
             }
         },
 
+        // Swaps the whole board, for the one case that needs it: the board the
+        // server returns after signing in. Anything that is not a well-formed
+        // board leaves the current one alone, so a bad response degrades into
+        // "kept working locally" rather than into an emptied screen.
+        replaceBoard(state, action) {
+            return normalizeBoard(action.payload) ?? state;
+        },
+
+        // Blank text and unknown type/priority keys are dropped rather than
+        // written: the same rule filtersSlice applies to its own input, and it
+        // keeps a card from ending up untitled or rendering without an icon.
+        // Each field is checked on its own, so a bad one never discards a good.
+        editCard: {
+            reducer(state, action) {
+                const { listID, cardID, text, type, priority } = action.payload;
+                const card = state
+                    .find(item => item.id === listID)
+                    ?.cards.find(item => item.id === cardID);
+
+                if (!card) {
+                    return;
+                }
+
+                if (typeof text === 'string' && text.trim()) {
+                    card.text = text.trim();
+                }
+
+                if (isValidType(type)) {
+                    card.type = type;
+                }
+
+                if (isValidPriority(priority)) {
+                    card.priority = priority;
+                }
+            },
+            prepare(listID, cardID, text, type, priority) {
+                return { payload: { listID, cardID, text, type, priority } };
+            }
+        },
+
+        renameList: {
+            reducer(state, action) {
+                const { listID, title } = action.payload;
+                const list = state.find(item => item.id === listID);
+
+                if (list && typeof title === 'string' && title.trim()) {
+                    list.title = title.trim();
+                }
+            },
+            prepare(listID, title) {
+                return { payload: { listID, title } };
+            }
+        },
+
+        // Takes the list's cards with it, which is why the UI confirms first
+        // whenever the list is not already empty.
+        deleteList: {
+            reducer(state, action) {
+                const index = state.findIndex(
+                    item => item.id === action.payload.listID
+                );
+
+                if (index !== -1) {
+                    state.splice(index, 1);
+                }
+            },
+            prepare(listID) {
+                return { payload: { listID } };
+            }
+        },
+
         deleteCard: {
             reducer(state, action) {
                 const { listID, cardID } = action.payload;
@@ -144,6 +221,15 @@ const listsSlice = createSlice({
     }
 });
 
-export const { addCard, addList, deleteCard, sort } = listsSlice.actions;
+export const {
+    addCard,
+    addList,
+    deleteCard,
+    deleteList,
+    editCard,
+    renameList,
+    replaceBoard,
+    sort
+} = listsSlice.actions;
 
 export default listsSlice.reducer;
