@@ -16,7 +16,7 @@
     "lint:fix": "eslint . --fix",
     "predeploy": "vite build --mode ghpages",
     "deploy": "gh-pages -d dist",
-    "pages:dev": "wrangler pages dev",
+    "pages:dev": "vite build && wrangler pages dev",
     "db:migrate:local": "wrangler d1 migrations apply ptm-board --local",
     "db:migrate": "wrangler d1 migrations apply ptm-board --remote"
   },

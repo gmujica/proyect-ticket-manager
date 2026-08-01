@@ -1,0 +1,15 @@
+# Plantilla de las variables que `wrangler pages dev` inyecta en las Functions.
+# Copiala como `.dev.vars` (que esta en .gitignore) y completa los dos valores
+# con los de tu GitHub OAuth App. Ver la seccion "Autenticacion en local" del
+# README para el paso a paso.
+#
+# La OAuth App de desarrollo tiene que apuntar exactamente a:
+#
+#   Homepage URL:               http://localhost:8788
+#   Authorization callback URL: http://localhost:8788/api/auth/callback
+#
+# El callback lo arma `functions/api/auth/login.js` a partir del origen de la
+# request, asi que si cambias el puerto tenes que cambiarlo tambien en GitHub.
+
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
