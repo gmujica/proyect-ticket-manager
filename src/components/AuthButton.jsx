@@ -8,25 +8,24 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { LOGIN_URL, logout } from '../api/client';
-import { signedOut } from '../store/authSlice';
+import { LOGIN_URL } from '../api/client';
+import { signOut } from '../store/boardThunks';
 
 const AuthButton = () => {
   const dispatch = useDispatch();
   const { user, status, syncing } = useSelector(state => state.auth);
   const [signingOut, setSigningOut] = useState(false);
 
+  // The thunk does more than end the session: it also hands the screen back to
+  // the board this browser owns, so the account's board does not stay visible —
+  // and editable — after the session behind it is over.
   const handleLogout = async () => {
     setSigningOut(true);
 
     try {
-      await logout();
+      await dispatch(signOut());
     } finally {
-      // Signed out locally either way: if the request failed the cookie may
-      // still be live, but leaving the UI claiming a session that may be gone
-      // is worse than an extra sign-in.
       setSigningOut(false);
-      dispatch(signedOut());
     }
   };
 

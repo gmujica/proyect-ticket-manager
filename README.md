@@ -9,6 +9,8 @@ A lightweight ticket board for working with the Scrum methodology.
   (Highest → Lowest), both shown as colour-coded icons on the card
 - Delete a card from the button that appears when you hover it
 - The board is **persisted to Local Storage**, so it survives a reload
+- Signed in, an account can keep **several boards** and switch between them from
+  the header
 
 ## Pre Requisites
 
@@ -68,6 +70,34 @@ Because the two live on different domains, every call goes out with
 `credentials: 'include'` and the session cookie is a third-party cookie. Browsers
 that block those — Safari by default — will not keep it, and sign-in fails there.
 The board itself keeps working: a failed `/api/me` falls back to Local Storage.
+
+## Boards
+
+An account can have up to 25 boards; a visitor who is not signed in has the one
+board this browser holds. The switcher in the header appears only once a session
+is live, and covers all of it: picking a board, creating one, renaming it and
+deleting it.
+
+A few rules are worth knowing because they are decisions rather than accidents:
+
+- **The last board cannot be deleted.** The API would allow it, but an account
+  with no boards has nothing to draw, and recovering from that state is worse
+  than the rename that was probably wanted instead.
+- **Deleting takes the lists and cards with it**, which is why it asks first.
+- **Local Storage is per board**, under `ptm.board.v1.<boardId>`. The board of an
+  anonymous visitor keeps the bare `ptm.board.v1` key it has always had, and on a
+  first sign-in that board becomes the account's first board — named `My board`,
+  renameable from the switcher.
+- **The board that was open is remembered** (`ptm.activeBoard.v1`) so a reload
+  comes back to it. Signing out clears it, and puts the local board back on
+  screen: the next visitor to this browser is not necessarily the same person.
+
+Switching boards is a single Redux action, `boards/boardOpened`, handled by both
+`boardsSlice` and `listsSlice`. That is not a stylistic choice: setting the id
+and the lists in two dispatches would leave a state in between where the new
+board's id sits next to the old board's lists, and the two subscribers on the
+store — the one that writes to Local Storage and the one that uploads — would
+file one board's work under another board's name.
 
 ## Pointing at the API
 

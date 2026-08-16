@@ -5,6 +5,7 @@ import {
     isValidPriority,
     isValidType
 } from '../constants/ticket';
+import { boardOpened, boardsCleared } from './boardsSlice';
 import { normalizeBoard } from './boardSchema';
 
 // IDs come from nanoid rather than incrementing counters: counters reset to their
@@ -81,14 +82,6 @@ const listsSlice = createSlice({
                     payload: { listID, id: `card-${nanoid()}`, text, type, priority }
                 };
             }
-        },
-
-        // Swaps the whole board, for the one case that needs it: the board the
-        // server returns after signing in. Anything that is not a well-formed
-        // board leaves the current one alone, so a bad response degrades into
-        // "kept working locally" rather than into an emptied screen.
-        replaceBoard(state, action) {
-            return normalizeBoard(action.payload) ?? state;
         },
 
         // Blank text and unknown type/priority keys are dropped rather than
@@ -218,6 +211,30 @@ const listsSlice = createSlice({
                 };
             }
         }
+    },
+
+    // The whole board is swapped from outside this slice, by the two actions
+    // `boardsSlice` owns. They are handled here rather than answered with a
+    // `replaceBoard` of our own so that the id of the board and its contents can
+    // never be set by two separate dispatches — see the note on `boardOpened`.
+    extraReducers: builder => {
+        builder
+            // A board arriving from the server. A response that is not a
+            // well-formed board opens as an empty one: the alternative is keeping
+            // the previous board's lists under the new board's id, and the
+            // subscriber that uploads would then write them over it.
+            .addCase(boardOpened, (state, action) =>
+                normalizeBoard(action.payload.lists) ?? []
+            )
+
+            // Signing out, which puts the board of this browser back on screen.
+            // Here there may be nothing to put back — a visitor who signed in on
+            // a fresh browser never had a local board — and in that case the
+            // board already on screen stays, and becomes the local one.
+            .addCase(
+                boardsCleared,
+                (state, action) => normalizeBoard(action.payload?.lists) ?? state
+            );
     }
 });
 
@@ -228,7 +245,6 @@ export const {
     deleteList,
     editCard,
     renameList,
-    replaceBoard,
     sort
 } = listsSlice.actions;
 
