@@ -25,3 +25,22 @@ directory = "./dist"
 # than `/` — or opens a link to one — still has to be handed index.html. The
 # default is `none`, which serves the 404 page instead.
 not_found_handling = "single-page-application"
+
+# On, and recording nothing — which is the point of writing it down rather than
+# leaving it out. A Worker with no `main` is never invoked: requests to static
+# assets are served ahead of any script and are free, so there are no
+# invocations to log, no `console.log` to collect, and no fetch, binding or
+# handler calls for tracing to instrument. An empty panel is the correct result
+# here, not a misconfiguration.
+#
+# It is here for the day this Worker gains code. The likeliest reason is putting
+# `/api/*` behind this origin as a proxy to ptm-api, which would also stop the
+# session cookie from being third-party and fix sign-in in Safari. On that day
+# logs should already be on, rather than be remembered a debugging session too
+# late. Until then it costs nothing, because nothing is emitted.
+#
+# Traces stay off for the same reason, and because there is nothing to trace
+# even in that future until the proxy exists. They are on in ptm-api instead,
+# where the D1 queries and the round trip to GitHub actually live.
+[observability]
+enabled = true
