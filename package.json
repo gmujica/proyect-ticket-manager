@@ -8,12 +8,15 @@
     "dev": "vite",
     "start": "vite",
     "build": "vite build",
+    "build:preview": "vite build --mode preview",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "deploy:cf": "wrangler deploy",
+    "deploy:preview": "wrangler versions upload --preview-alias dev",
     "predeploy": "vite build --mode ghpages",
     "deploy": "gh-pages -d dist"
   },
@@ -43,9 +46,11 @@
     "globals": "^17.8.0",
     "jsdom": "^29.1.1",
     "vite": "^8.1.5",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "wrangler": "^4.123.0"
   },
   "allowScripts": {
-    "esbuild@0.28.1": true
+    "esbuild@0.28.1": true,
+    "workerd@1.20260811.1": true
   }
 }

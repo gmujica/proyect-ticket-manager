@@ -2,13 +2,15 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [master, dev]
   pull_request:
 
-# A second push to the same branch cancels the run still in flight.
+# A second push to the same branch cancels the run still in flight — except on
+# pushes, which are the runs that deploy. Killing one of those halfway is worse
+# than paying for a minute of CI that a newer commit has already superseded.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
@@ -33,3 +35,77 @@ jobs:
       # Catches build-only failures the tests cannot see, such as a bad import
       # path that Vitest resolves but Rollup does not.
       - run: npm run build
+
+  # Every push to `dev` uploads a new version of the Worker and points the `dev`
+  # alias at it. A version is not a deployment: production keeps serving
+  # whatever `master` last deployed, untouched. The alias URL is stable across
+  # pushes, so a link shared once goes on showing the latest dev build.
+  preview:
+    needs: check
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+
+    # Puts the link on the run itself and on the repository's Environments page,
+    # which is a shorter path to it than opening the job log.
+    environment:
+      name: preview
+      url: https://dev-proyect-ticket-manager.gmujica.workers.dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # `--mode preview` is the whole difference from the production build: it
+      # reads .env.preview, so the bundle talks to ptm-api-dev instead of the
+      # production API. A plain `npm run build` here would have the preview
+      # writing to real boards.
+      - run: npm run build:preview
+
+      - run: npm run deploy:preview
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Summarise the preview link
+        run: |
+          {
+            echo "### Preview"
+            echo
+            echo "<https://dev-proyect-ticket-manager.gmujica.workers.dev>"
+            echo
+            echo "Points at the staging API, so nothing here touches production data."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # Production, and the only job that changes what the public URL serves.
+  # Reached by merging into master, never by pushing to dev.
+  deploy:
+    needs: check
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+      url: https://proyect-ticket-manager.gmujica.workers.dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - run: npm run deploy:cf
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
