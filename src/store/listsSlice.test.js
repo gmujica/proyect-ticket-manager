@@ -5,9 +5,9 @@ import listsReducer, {
   deleteList,
   editCard,
   renameList,
-  replaceBoard,
   sort
 } from './listsSlice';
+import { boardOpened, boardsCleared } from './boardsSlice';
 import { DEFAULT_PRIORITY, DEFAULT_TYPE } from '../constants/ticket';
 
 // A two-list board used as the starting point for most cases. Built by a
@@ -141,7 +141,14 @@ describe('listsSlice', () => {
     });
   });
 
-  describe('REPLACE_BOARD', () => {
+  // The board is swapped from outside the slice, by the two actions boardsSlice
+  // owns. What is being pinned here is that this slice answers them at all: a
+  // switch that changed the id without the lists is the bug they exist to
+  // prevent.
+  describe('boardOpened', () => {
+    const open = (state, lists) =>
+      listsReducer(state, boardOpened({ id: 'board-x', lists }));
+
     const incoming = [
       {
         id: 'list-x',
@@ -150,28 +157,25 @@ describe('listsSlice', () => {
       }
     ];
 
-    it('swaps in the given board', () => {
-      const state = listsReducer(board(), replaceBoard(incoming));
+    it('swaps in the lists of the board being opened', () => {
+      const state = open(board(), incoming);
 
       expect(listIds(state)).toEqual(['list-x']);
       expect(cardIds(state, 'list-x')).toEqual(['cx']);
     });
 
-    it('accepts an empty board', () => {
-      expect(listsReducer(board(), replaceBoard([]))).toEqual([]);
+    it('accepts a board with no lists yet', () => {
+      expect(open(board(), [])).toEqual([]);
     });
 
     it('normalizes an unknown type or priority to the defaults', () => {
-      const state = listsReducer(
-        board(),
-        replaceBoard([
-          {
-            id: 'list-x',
-            title: 'X',
-            cards: [{ id: 'cx', text: 'odd', type: 'epic', priority: 'urgent' }]
-          }
-        ])
-      );
+      const state = open(board(), [
+        {
+          id: 'list-x',
+          title: 'X',
+          cards: [{ id: 'cx', text: 'odd', type: 'epic', priority: 'urgent' }]
+        }
+      ]);
 
       expect(state[0].cards[0]).toMatchObject({
         type: DEFAULT_TYPE,
@@ -180,17 +184,14 @@ describe('listsSlice', () => {
     });
 
     it('drops fields that are not part of a card', () => {
-      const state = listsReducer(
-        board(),
-        replaceBoard([
-          {
-            id: 'list-x',
-            title: 'X',
-            cards: [{ id: 'cx', text: 'ok', type: 'task', priority: 'low', evil: 1 }],
-            extra: 'ignored'
-          }
-        ])
-      );
+      const state = open(board(), [
+        {
+          id: 'list-x',
+          title: 'X',
+          cards: [{ id: 'cx', text: 'ok', type: 'task', priority: 'low', evil: 1 }],
+          extra: 'ignored'
+        }
+      ]);
 
       expect(state[0]).toEqual({
         id: 'list-x',
@@ -199,14 +200,31 @@ describe('listsSlice', () => {
       });
     });
 
-    // Losing the board to a bad payload would look exactly like losing the work.
-    it('keeps the current board when the payload is not a board', () => {
+    // Keeping the previous board would be worse than emptying the screen: its
+    // lists would then belong, as far as the rest of the app is concerned, to
+    // the board just opened, and the next save would write them over it.
+    it('opens an empty board when the payload is not a board', () => {
+      expect(open(board(), null)).toEqual([]);
+      expect(open(board(), undefined)).toEqual([]);
+      expect(open(board(), 'nope')).toEqual([]);
+      expect(open(board(), [{ id: 'no-title' }])).toEqual([]);
+    });
+  });
+
+  describe('boardsCleared', () => {
+    it('puts the board of this browser back on screen', () => {
+      const local = [{ id: 'list-local', title: 'Local', cards: [] }];
+
+      expect(listsReducer(board(), boardsCleared({ lists: local }))).toEqual(local);
+    });
+
+    // Signing out on a browser that never had a board of its own: what is on
+    // screen stays, and becomes the local board from here on.
+    it('keeps the current board when there is nothing to put back', () => {
       const initial = board();
 
-      expect(listsReducer(initial, replaceBoard(null))).toBe(initial);
-      expect(listsReducer(initial, replaceBoard(undefined))).toBe(initial);
-      expect(listsReducer(initial, replaceBoard('nope'))).toBe(initial);
-      expect(listsReducer(initial, replaceBoard([{ id: 'no-title' }]))).toBe(initial);
+      expect(listsReducer(initial, boardsCleared({}))).toBe(initial);
+      expect(listsReducer(initial, boardsCleared())).toBe(initial);
     });
   });
 

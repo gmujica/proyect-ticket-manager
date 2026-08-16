@@ -1,21 +1,27 @@
-# Pages Functions configuration. The static build in `dist` is served as before;
-# everything under `functions/` becomes an endpoint under the same origin, which
-# is why the frontend needs no CORS handling and the session cookie is first
-# party.
+# The frontend as a Worker with no code of its own: only the built `dist`,
+# served as static assets. The API is a separate Worker in the ptm-api
+# repository and on its own domain, which is why nothing here binds D1 or holds
+# a secret — everything this side needs is baked into the bundle by Vite.
+#
+# The name is deliberate rather than free: it is the Worker that already existed
+# in the account with a version uploaded and never deployed, and it is what
+# gives production its hostname below.
 name = "proyect-ticket-manager"
-pages_build_output_dir = "dist"
-compatibility_date = "2026-07-31"
+compatibility_date = "2026-08-16"
 
-# `database_id` below is a placeholder until the database actually exists. Create
-# it with:
-#
-#   npx wrangler d1 create ptm-board
-#
-# and paste the id it prints here. Local development does not use this id at all
-# (`--local` keeps its own SQLite file under .wrangler/), so the placeholder is
-# only a problem when deploying.
-[[d1_databases]]
-binding = "DB"
-database_name = "ptm-board"
-database_id = "REPLACE_WITH_ID_FROM_WRANGLER_D1_CREATE"
-migrations_dir = "migrations"
+# Production: https://proyect-ticket-manager.gmujica.workers.dev
+workers_dev = true
+
+# What turns an uploaded version into something reachable. The deploy from `dev`
+# depends on it: `wrangler versions upload` records a version and prints a URL,
+# and without this that URL 404s. On by default; stated because the whole
+# preview flow in .github/workflows/ci.yml rests on it.
+preview_urls = true
+
+[assets]
+directory = "./dist"
+
+# The app is one page with no router, but a visitor who reloads on a path other
+# than `/` — or opens a link to one — still has to be handed index.html. The
+# default is `none`, which serves the 404 page instead.
+not_found_handling = "single-page-application"

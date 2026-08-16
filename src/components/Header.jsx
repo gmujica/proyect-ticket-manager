@@ -7,6 +7,7 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 
 import AuthButton from './AuthButton';
+import BoardSwitcher from './BoardSwitcher';
 import FilterBar from './FilterBar';
 import InfoModal from './InfoModal';
 
@@ -18,6 +19,9 @@ const Header = () => {
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             Proyect Ticket Manager
           </Typography>
+          {/* Renders nothing at all until somebody is signed in, which is what
+              keeps the header of an anonymous visitor exactly as it was. */}
+          <BoardSwitcher />
           <AuthButton />
           <InfoModal />
           <IconButton

@@ -9,6 +9,8 @@ A lightweight ticket board for working with the Scrum methodology.
   (Highest → Lowest), both shown as colour-coded icons on the card
 - Delete a card from the button that appears when you hover it
 - The board is **persisted to Local Storage**, so it survives a reload
+- Signed in, an account can keep **several boards** and switch between them from
+  the header
 
 ## Pre Requisites
 
@@ -33,74 +35,126 @@ next free port if 3000 is taken).
 Builds the app for production into the `dist` folder.<br />
 The build is minified and the filenames include hashes.
 
+### `npm run build:preview`
+
+The same build against the staging API instead of the production one. This is
+what the `dev` branch publishes; see [Deployment](#deployment).
+
 ### `npm run preview`
 
 Serves the production build locally so you can verify it before deploying.
 
+### `npm run deploy:cf` / `npm run deploy:preview`
+
+Publish to Cloudflare by hand — production and preview respectively. Normally
+neither is run: CI does it on a push. They exist for the day CI is down, and
+they expect `dist` to already hold the right build.
+
 ### `npm run deploy`
 
-Builds and publishes `dist` to GitHub Pages.
+Builds and publishes `dist` to GitHub Pages. Superseded by the Cloudflare deploy
+below and kept only because the old GitHub Pages URL is still linked from
+elsewhere; nothing publishes to it automatically.
 
 # Accounts and sync
 
 Signing in is optional. Without a session the board lives in Local Storage exactly
 as it always has; on the first sign-in that local board is uploaded to the account,
-and from then on it is stored in [Cloudflare D1](https://developers.cloudflare.com/d1/)
-and synced across devices.
+and from then on it is stored server-side and synced across devices.
 
-The backend is a set of [Pages Functions](https://developers.cloudflare.com/pages/functions/)
-under `functions/`, served from the same origin as the app — which is why there is
-no CORS handling and the session cookie is first party.
+**The backend is a separate repository**, [ptm-api](https://github.com/gmujica/api),
+deployed as a Cloudflare Worker on its own domain. This repository holds only the
+frontend. `src/api/client.js` is the whole of the contact between them.
 
-| Endpoint             | Purpose                                     |
-|----------------------|---------------------------------------------|
-| `GET /api/auth/login`    | Redirects to GitHub with a signed state |
-| `GET /api/auth/callback` | Exchanges the code, opens the session   |
-| `POST /api/auth/logout`  | Deletes the session                     |
-| `GET /api/me`            | The current user, or `null`             |
-| `GET`/`PUT /api/board`   | Reads and writes the stored board       |
+Because the two live on different domains, every call goes out with
+`credentials: 'include'` and the session cookie is a third-party cookie. Browsers
+that block those — Safari by default — will not keep it, and sign-in fails there.
+The board itself keeps working: a failed `/api/me` falls back to Local Storage.
 
-## Running the backend locally
+## Boards
 
-`npm run dev` only serves the frontend, so `/api/*` is not available there. To
-exercise sign-in you need Wrangler, which serves `dist` and `functions/` together
-on port 8788.
+An account can have up to 25 boards; a visitor who is not signed in has the one
+board this browser holds. The switcher in the header appears only once a session
+is live, and covers all of it: picking a board, creating one, renaming it and
+deleting it.
 
-**1. Create a GitHub OAuth App** at
-[Settings → Developer settings → OAuth Apps](https://github.com/settings/developers)
-→ *New OAuth App*, with:
+A few rules are worth knowing because they are decisions rather than accidents:
 
-- **Homepage URL** — `http://localhost:8788`
-- **Authorization callback URL** — `http://localhost:8788/api/auth/callback`
+- **The last board cannot be deleted.** The API would allow it, but an account
+  with no boards has nothing to draw, and recovering from that state is worse
+  than the rename that was probably wanted instead.
+- **Deleting takes the lists and cards with it**, which is why it asks first.
+- **Local Storage is per board**, under `ptm.board.v1.<boardId>`. The board of an
+  anonymous visitor keeps the bare `ptm.board.v1` key it has always had, and on a
+  first sign-in that board becomes the account's first board — named `My board`,
+  renameable from the switcher.
+- **The board that was open is remembered** (`ptm.activeBoard.v1`) so a reload
+  comes back to it. Signing out clears it, and puts the local board back on
+  screen: the next visitor to this browser is not necessarily the same person.
 
-The callback is derived from the request origin in `functions/api/auth/login.js`,
-so it has to match the port exactly. Use a separate app for production.
+Switching boards is a single Redux action, `boards/boardOpened`, handled by both
+`boardsSlice` and `listsSlice`. That is not a stylistic choice: setting the id
+and the lists in two dispatches would leave a state in between where the new
+board's id sits next to the old board's lists, and the two subscribers on the
+store — the one that writes to Local Storage and the one that uploads — would
+file one board's work under another board's name.
 
-**2. Fill in `.dev.vars`** (copy it from `.dev.vars.example` if it is missing) with
-the client ID and a generated client secret. The file is git-ignored.
+## Pointing at the API
 
-**3. Apply the migrations** to the local database, which is a SQLite file under
-`.wrangler/` and is unrelated to the `database_id` in `wrangler.toml`:
+`VITE_API_URL` says where the backend is. It is committed, not secret:
 
-```shell
-npm run db:migrate:local
-```
+| File               | Used by                | Value                                     |
+|--------------------|------------------------|-------------------------------------------|
+| `.env.development` | `npm run dev`          | `http://localhost:8788`                   |
+| `.env.preview`     | `npm run build:preview`| `https://ptm-api-dev.gmujica.workers.dev` |
+| `.env.production`  | `npm run build`        | `https://ptm-api.gmujica.workers.dev`     |
 
-**4. Start it** with `npm run pages:dev` and open
-[http://localhost:8788](http://localhost:8788). The script builds first, because
-Wrangler serves the contents of `dist` rather than the Vite dev server; Functions
-themselves do reload on save.
+It has to match the API's own `FRONTEND_ORIGIN` in the other direction, exactly
+and with no trailing slash, or CORS rejects the calls. The API allows one origin
+per environment and not a list, which is the reason the preview build points at
+a second Worker rather than sharing the production one.
 
-## Deploying
+## Running both halves locally
 
-Beyond the steps above, production needs the real database and the secrets:
+Two terminals. Here, `npm run dev` on port 3000; in the `api` repository,
+`npm run dev` on port 8788. Its README covers the OAuth App and the local
+database. Without the backend running the app still works, unauthenticated.
 
-```shell
-npx wrangler d1 create ptm-board   # paste the id into wrangler.toml
-npm run db:migrate
-npx wrangler pages secret put GITHUB_CLIENT_ID
-npx wrangler pages secret put GITHUB_CLIENT_SECRET
-```
+# Deployment
+
+Nothing is deployed by hand. The frontend is a Cloudflare Worker that serves
+`dist` as static assets and runs no code of its own — see `wrangler.toml` — and
+`.github/workflows/ci.yml` publishes it:
+
+| Push to  | What happens                                    | URL                                                     |
+|----------|-------------------------------------------------|---------------------------------------------------------|
+| `dev`    | `wrangler versions upload --preview-alias dev`  | <https://dev-proyect-ticket-manager.gmujica.workers.dev> |
+| `master` | `wrangler deploy`                               | <https://proyect-ticket-manager.gmujica.workers.dev>     |
+
+Lint, tests and a build gate both: the deploy job runs only if `check` passed,
+so a red branch does not reach either URL.
+
+The difference between the two is a Cloudflare distinction worth knowing.
+`versions upload` creates a **version** and gives it a hostname; it does not
+change what production serves. `deploy` creates a version *and* points
+production at it. So a push to `dev` can never move production — only a merge
+into `master` does that.
+
+The preview alias is stable: it is republished on every push to `dev` and always
+shows the newest build, so the link can be handed to someone once and left. Each
+individual version also gets its own permanent
+`<hash>-proyect-ticket-manager.gmujica.workers.dev`, printed in the job log, for
+when an older state has to be pinned down.
+
+Preview builds talk to `ptm-api-dev`, which has its own D1 database. Signing in
+works there, and nothing done in a preview touches production boards.
+
+## What CI needs
+
+Two repository secrets, both from Cloudflare:
+
+- `CLOUDFLARE_API_TOKEN` — a token with the **Edit Cloudflare Workers** template
+- `CLOUDFLARE_ACCOUNT_ID`
 
 # Development technologies
 

@@ -10,12 +10,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
-  // `.wrangler` holds the bundles Wrangler generates while serving the Functions
-  // locally. They are minified vendor code, they fail half the rules here, and
-  // they only exist on a machine that has run `npm run pages:dev` — so without
-  // this the lint passes in CI and breaks the moment anyone runs the backend.
-  // Being in .gitignore is not enough: flat config does not read it.
-  { ignores: ['dist/**', 'coverage/**', '.wrangler/**'] },
+  { ignores: ['dist/**', 'coverage/**'] },
 
   js.configs.recommended,
   react.configs.flat.recommended,

@@ -1,10 +1,17 @@
-import { loadBoard, saveBoard } from './persistence';
+import {
+  forgetBoard,
+  loadActiveBoardId,
+  loadBoard,
+  saveActiveBoardId,
+  saveBoard
+} from './persistence';
 import { DEFAULT_PRIORITY, DEFAULT_TYPE } from '../constants/ticket';
 
-// Mirrors the private constant in persistence.js. Duplicated on purpose: these
-// tests pin the on-disk format, so a change to the key should fail here and be
+// Mirrors the private constants in persistence.js. Duplicated on purpose: these
+// tests pin the on-disk format, so a change to the keys should fail here and be
 // an explicit decision about migrating existing users.
 const STORAGE_KEY = 'ptm.board.v1';
+const ACTIVE_KEY = 'ptm.activeBoard.v1';
 
 const write = value => window.localStorage.setItem(STORAGE_KEY, value);
 
@@ -22,13 +29,13 @@ beforeEach(() => {
 
 describe('saveBoard', () => {
   it('writes the board as JSON under the versioned key', () => {
-    saveBoard(validBoard);
+    saveBoard(null, validBoard);
 
     expect(JSON.parse(window.localStorage.getItem(STORAGE_KEY))).toEqual(validBoard);
   });
 
   it('survives a round trip through loadBoard', () => {
-    saveBoard(validBoard);
+    saveBoard(null, validBoard);
 
     expect(loadBoard()).toEqual(validBoard);
   });
@@ -40,9 +47,95 @@ describe('saveBoard', () => {
         throw new DOMException('QuotaExceededError');
       });
 
-    expect(() => saveBoard(validBoard)).not.toThrow();
+    expect(() => saveBoard(null, validBoard)).not.toThrow();
 
     setItem.mockRestore();
+  });
+});
+
+// The reason the key is not a single one any more: an account with several
+// boards would otherwise have each of them overwrite the last, and the board
+// built before signing in would be the first casualty.
+describe('one key per board', () => {
+  const otherBoard = [{ id: 'list-b', title: 'B', cards: [] }];
+
+  it('keeps each board under its own key', () => {
+    saveBoard('board-1', validBoard);
+    saveBoard('board-2', otherBoard);
+
+    expect(loadBoard('board-1')).toEqual(validBoard);
+    expect(loadBoard('board-2')).toEqual(otherBoard);
+  });
+
+  it('does not disturb the board of an anonymous visitor', () => {
+    saveBoard(null, validBoard);
+    saveBoard('board-1', otherBoard);
+
+    expect(loadBoard()).toEqual(validBoard);
+  });
+
+  it('answers undefined for a board this browser has never seen', () => {
+    saveBoard('board-1', validBoard);
+
+    expect(loadBoard('board-2')).toBeUndefined();
+  });
+
+  it('forgets one board without touching the others', () => {
+    saveBoard('board-1', validBoard);
+    saveBoard('board-2', otherBoard);
+
+    forgetBoard('board-1');
+
+    expect(loadBoard('board-1')).toBeUndefined();
+    expect(loadBoard('board-2')).toEqual(otherBoard);
+  });
+
+  it('does not throw when storage is unavailable', () => {
+    const removeItem = vi
+      .spyOn(Storage.prototype, 'removeItem')
+      .mockImplementation(() => {
+        throw new DOMException('SecurityError');
+      });
+
+    expect(() => forgetBoard('board-1')).not.toThrow();
+
+    removeItem.mockRestore();
+  });
+});
+
+describe('the active board id', () => {
+  it('round trips', () => {
+    saveActiveBoardId('board-1');
+
+    expect(window.localStorage.getItem(ACTIVE_KEY)).toBe('board-1');
+    expect(loadActiveBoardId()).toBe('board-1');
+  });
+
+  it('is null when nothing has been saved', () => {
+    expect(loadActiveBoardId()).toBeNull();
+  });
+
+  // Signing out clears it: the next visitor to this browser is not necessarily
+  // the same person, and the id would send them looking for somebody else's
+  // board.
+  it('is cleared rather than stored empty', () => {
+    saveActiveBoardId('board-1');
+    saveActiveBoardId(null);
+
+    expect(window.localStorage.getItem(ACTIVE_KEY)).toBeNull();
+    expect(loadActiveBoardId()).toBeNull();
+  });
+
+  it('does not throw when storage is unreadable', () => {
+    const getItem = vi
+      .spyOn(Storage.prototype, 'getItem')
+      .mockImplementation(() => {
+        throw new DOMException('SecurityError');
+      });
+
+    expect(loadActiveBoardId()).toBeNull();
+
+    getItem.mockRestore();
   });
 });
 
