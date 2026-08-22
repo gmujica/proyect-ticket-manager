@@ -67,7 +67,16 @@ jobs:
       # writing to real boards.
       - run: npm run build:preview
 
-      - run: npm run deploy:preview
+      # `--tag` and `--message` are the only thread back to here. Cloudflare
+      # records the version but knows nothing of the build that produced it, so
+      # without them its Deployments tab is a list of bare hashes and timestamps.
+      # The subject is cut at 80 characters because commit subjects here are not
+      # always short and the annotation is read in a narrow column.
+      - name: Upload the preview version
+        run: |
+          npm run deploy:preview -- \
+            --tag "$(git rev-parse --short HEAD)" \
+            --message "$(git log -1 --pretty=%s | cut -c1-80) · run ${{ github.run_number }}"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -105,7 +114,14 @@ jobs:
 
       - run: npm run build
 
-      - run: npm run deploy:cf
+      # Same annotations as the preview job. On master the subject is usually
+      # the merge commit's — "Merge pull request #14 from gmujica/dev" — which
+      # is what makes the version findable from the PR it came from.
+      - name: Deploy to production
+        run: |
+          npm run deploy:cf -- \
+            --tag "$(git rev-parse --short HEAD)" \
+            --message "$(git log -1 --pretty=%s | cut -c1-80) · run ${{ github.run_number }}"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
